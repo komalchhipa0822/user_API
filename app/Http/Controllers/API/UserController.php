@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth; 
 use Illuminate\Support\Str;
+use App\Jobs\SendUserEmailJob;
 use App\Mail\UserMail;
 use Mail;
 
@@ -95,7 +96,8 @@ class UserController extends Controller
             ];
 
             $email_subject= "Registration on ".config('app.name');
-            Mail::to($request->email)->send(new UserMail($email_data,$email_subject));
+
+            dispatch(new SendUserEmailJob($email_data,$email_subject));
 
             return response([
                 'status' => true,
@@ -280,10 +282,10 @@ class UserController extends Controller
                     'name'=> $user->first_name.' '. $user->middle_name .' '. $user->last_name,
                     'password'=>$password,
                     'email'=>$user->email,
-                ];
+                    ];
 
-                $email_subject= "Reset Password on ".config('app.name');
-                Mail::to($user->email)->send(new UserMail($email_data,$email_subject));
+                    $email_subject= "Reset Password on ".config('app.name');
+                    dispatch(new SendUserEmailJob($email_data,$email_subject));
 
                     return response([
                     'status' => true,
